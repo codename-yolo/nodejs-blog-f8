@@ -1,0 +1,1 @@
+Chứa các mã nguồn chung có thể được sử dụng cả ở phần server-side và client-side (ví dụ: models, utils).

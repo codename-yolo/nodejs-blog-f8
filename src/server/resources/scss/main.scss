@@ -1,0 +1,48 @@
+@import '_variables.scss';
+
+h1 {
+    color: $red-color;
+}
+
+.search-form {
+    margin-top: 20px;
+}
+
+a {
+    margin: 0;
+    padding: 0;
+    vertical-align: baseline;
+    background: transparent;
+    text-decoration: none;
+    color: #000;
+}
+
+iframe {
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+
+.container {
+    .nav-dropdown-header {
+        display: inline-block;
+
+        img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    }
+
+    .custom-header-collapse {
+        justify-content: end;
+    }
+}
+
+table {
+    tbody {
+        th,
+        td {
+            vertical-align: middle !important;
+        }
+    }
+}

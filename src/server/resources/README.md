@@ -1,0 +1,1 @@
+Chứa các file template (ví dụ: Handlebars, Pug) để render trang. và style css của chúng

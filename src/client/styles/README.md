@@ -1,0 +1,1 @@
+Chứa các file CSS, SCSS hoặc styled-components.

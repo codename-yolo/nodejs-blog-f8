@@ -1,0 +1,230 @@
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <h2>Courses deleted</h2>
+    <a href="/me/courses" class="d-block btn-link">Back</a>
+</div>
+
+<form id="form-handle-action" method="post" action="/me/courses/handle-with-actions">
+    {{#if courses}}
+    <div class="d-flex align-items-center" style="gap: 10px">
+        <div class="form-check">
+            <input class="form-check-input bd-example" type="checkbox" value="" id="checkbox-all" />
+            <label class="form-check-label" for="checkbox-all">
+                Check all
+            </label>
+        </div>
+        <select id="select-action" name="action" class="form-control form-select-sm" style="max-width: max-content;"
+            required>
+            <option value="">---Choose action---</option>
+            <option value="1">Restore</option>
+            <option value="3">Delete</option>
+        </select>
+        <button type="button" class="btn btn-primary btn-sm" id="submit-action" disabled>Submit</button>
+    </div>
+    {{/if}}
+
+    <table class="table {{#if courses}}table-hover{{else}}{{/if}}">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th scope="col">No</th>
+                <th scope="col">Name</th>
+                <th scope="col">Level</th>
+                <th scope="col">DeleteAt</th>
+                <th scope="col" colspan="2">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each courses}}
+            <tr>
+                <th><input class="form-check-input" type="checkbox" name="courseIds[]" value={{this._id}}></th>
+                <th scope="row">{{increase @index}}</th>
+                <td>{{this.name}}</td>
+                <td>{{this.Level}}</td>
+                <td>{{this.deleteAt}}</td>
+                <td><button type="button" id="btn-restore" class="btn btn-link" data-id={{this._id}}>Restore</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-link" data-bs-toggle="modal" data-id={{this._id}}
+                        data-bs-target="#modal-confirm-delete-course">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td class="text-center" colspan="6">
+                    <span>Trash empty.</span><a class="btn-link mx-2" href="/me/courses">Back to courses</a>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</form>
+
+<!-- Modal confirm delete course -->
+<div class="modal fade" id="modal-confirm-delete-course" tabindex="-1" aria-labelledby="modal-confirm-delete-course-label"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-confirm-delete-course-label">Delete course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete your course permanently?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btn-delete-course" class="btn btn-danger"
+                    data-bs-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirm delete courses -->
+<div class="modal fade" id="modal-confirm-delete-courses" tabindex="-1"
+    aria-labelledby="#modal-confirm-delete-courses-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="#modal-confirm-delete-courses-label">Delete courses</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete your courses permanently?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btn-delete-courses-modal" class="btn btn-danger"
+                    data-bs-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="form-delete" method="post"></form>
+<form id="form-update" method="post"></form>
+
+<script type="module">
+    document.addEventListener('DOMContentLoaded', () => {
+        // * Handle action column table
+        
+        // handle delete course
+        const modalConfirmDeleteCourse = document.getElementById('modal-confirm-delete-course')
+        const btnDeleteCourse = document.getElementById('btn-delete-course')
+        const formDelete = document.forms['form-delete']
+
+        modalConfirmDeleteCourse.addEventListener('show.bs.modal', function (event) {
+            const courseId = event.relatedTarget.dataset.id
+            btnDeleteCourse.onclick = () => {
+                formDelete.setAttribute('action', `/me/courses/trash/delete/${courseId}?_method=DELETE`)
+                formDelete.submit()
+            }
+        })
+
+        // handle restore course
+        const btnRestore = document.querySelectorAll('#btn-restore')
+        const formUpdate = document.forms['form-update']
+
+        Array.from(btnRestore).forEach((btn) => {
+            btn.onclick = (event) => {
+                const courseId = event.target.dataset.id
+                formUpdate.setAttribute('action', `/me/courses/trash/restore/${courseId}?_method=PATCH`)
+                formUpdate.submit()
+            }
+        })
+
+
+        // * Handle form with action send to server
+
+        // handle checkbox
+        const checkboxCourse = document.querySelectorAll('input[name="courseIds[]"]');
+        const convertArray = Array.from(checkboxCourse);
+        const checkboxAll = document.getElementById('checkbox-all');
+        const btnSubmitAction = document.getElementById('submit-action')
+
+        const checkAllChecked = () => convertArray.every((checkbox) => checkbox.checked);
+        const checkAllUnChecked = () => convertArray.every((checkbox) => !checkbox.checked);
+        const checkOneChecked = () => convertArray.some((checkbox) => checkbox.checked);
+
+        (() => {
+            Array.from(convertArray).forEach((checkbox) => {
+                checkbox.onchange = (event) => {
+                    const isChecked = event.target.checked;
+                    const value = event.target.value;
+                    // show indeterminate when checkbox course checked not == count courses
+                    checkboxAll.indeterminate = true
+
+                    // checked checkbox all and del indeterminate when all checkbox course checked
+                    if (checkAllChecked()) {
+                        checkboxAll.checked = true
+                        checkboxAll.indeterminate = false
+                    }
+
+                    // uncheck all checkbox when all checkbox course unchecked
+                    if (checkAllUnChecked()) {
+                        checkboxAll.checked = false
+                        checkboxAll.indeterminate = false
+                        // disabled button submit when not course checked
+
+                    }
+
+                    // enable or disable button submit when there is course checked or not course checked
+                    btnSubmitAction.disabled = !checkOneChecked()
+                }
+            })
+        })()
+
+        // check all and unchecked all when change checkbox all
+        if(checkboxAll) {
+            checkboxAll.onchange = (event) => {
+                const isChecked = event.target.checked
+                convertArray.forEach((checkbox) => {
+                    checkbox.checked = isChecked
+                    // enable or disable button submit when there is checkbox all checked or unchecked
+                    btnSubmitAction.disabled = !checkOneChecked()
+                })
+            }
+        }
+
+        // handle send data to servers
+        const selectAction = document.getElementById('select-action')
+        const btnDeleteCoursesModal = document.getElementById('btn-delete-courses-modal')
+        const modalConfirmDeleteCourses = document.getElementById('modal-confirm-delete-courses')
+        const myModal = new bootstrap.Modal(modalConfirmDeleteCourses)
+        const formHandleAction = document.forms['form-handle-action']
+
+        modalConfirmDeleteCourses.addEventListener('show.bs.modal', (event) => {
+            btnDeleteCoursesModal.onclick = () => {
+                formHandleAction.submit()
+            }
+        })
+
+        const ACTIONS = {
+            RESTORE: '1',
+            DELETE: '3'
+        }
+
+        if (btnSubmitAction) {
+            btnSubmitAction.onclick = (e) => {
+                const isValid = formHandleAction.reportValidity()
+
+                if (!isValid) return 
+
+                switch(selectAction.value) {
+                    case ACTIONS.RESTORE:
+                        formHandleAction.submit();
+                        break;
+                    case ACTIONS.DELETE:
+                        myModal.show();
+                        break;
+                    default: 
+                        break;
+                }
+            }
+        }
+
+    })
+
+</script>

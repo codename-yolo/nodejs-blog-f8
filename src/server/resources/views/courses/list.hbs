@@ -1,0 +1,25 @@
+<div class="mt-4">
+    <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Input search..." aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+</div>
+<div class="mt-4">
+    <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
+        {{#each courses}}
+        <div class="col-4">
+            <div class="card" style="width: 18rem;">
+                <a href="courses/{{this.slug}}">
+                    <img src={{this.image}} class="card-img-top" alt="...">
+                </a>
+                <div class="card-body">
+                    <a href="courses/{{this.slug}}">
+                        <h5 class="card-title">{{this.name}}</h5>
+                    </a>
+                    <p class="card-text">{{this.description}}</p>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</div>

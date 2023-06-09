@@ -11,5 +11,13 @@
     "bracketSpacing": true,
     "htmlWhitespaceSensitivity": "css",
     "quoteProps": "as-needed",
-    "proseWrap": "never"
+    "proseWrap": "never",
+    "overrides": [
+        {
+            "files": ["**/*.hbs"],
+            "options": {
+                "singleQuote": false
+            }
+        }
+    ]
 }

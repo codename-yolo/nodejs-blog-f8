@@ -1,0 +1,211 @@
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <h2>My courses</h2>
+    {{#if deleteCount}}
+    <a href="/me/courses/trash" class="d-block">
+        <img src="/icons/trash.svg" alt="" />{{deleteCount}}</a>
+    {{/if}}
+</div>
+
+<form id="form-handle-action" method="post" action="/me/courses/handle-with-actions">
+    {{#if courses}}
+    <div class="d-flex align-items-center" style="gap: 10px">
+        <div class="form-check">
+            <input class="form-check-input bd-example" type="checkbox" value="" id="checkbox-all" />
+            <label class="form-check-label" for="checkbox-all">
+                Check all
+            </label>
+        </div>
+        <select id="select-action" name="action" class="form-control form-select-sm" style="max-width: max-content;"
+            required>
+            <option value="">---Choose action---</option>
+            <option value="2">Delete</option>
+        </select>
+        <button type="button" class="btn btn-primary btn-sm" id="submit-action" disabled>Submit</button>
+    </div>
+    {{/if}}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th scope="col">No</th>
+                <th scope="col">
+                    {{{sortTableRender 'name' sort 'Name'}}}
+                </th>
+                <th scope="col">Level</th>
+                <th scope="col">
+                    {{{sortTableRender 'createAt' sort 'CreateAt'}}}
+                </th>
+                <th scope="col" colspan="2">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each courses}}
+            <tr>
+                <th><input class="form-check-input" type="checkbox" name="courseIds[]" value={{this._id}} /></th>
+                <th scope="row">{{increase @index}}</th>
+                <td>{{this.name}}</td>
+                <td>{{this.Level}}</td>
+                <td>{{this.createdAt}}</td>
+                <td><a class="btn btn-link" href="/courses/edit/{{this._id}}">Edit</a></td>
+                <td>
+                    <button type="button" class="btn btn-link" data-bs-toggle="modal" data-id={{this._id}}
+                        data-bs-target="#modal-confirm-move-course">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td class="text-center" colspan="6">
+                    <span>Courses empty.</span><a class="btn-link mx-2" href="/courses/create">Create new course</a>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</form>
+
+<!-- Modal confirm delete course -->
+<div class="modal fade" id="modal-confirm-move-course" tabindex="-1" aria-labelledby="modal-confirm-move-course-label"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-confirm-move-course-label">Delete course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to move the course to the trash?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btn-move-course-modal" class="btn btn-danger"
+                    data-bs-dismiss="modal">Move</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirm move courses -->
+<div class="modal fade" id="modal-confirm-move-courses" tabindex="-1"
+    aria-labelledby="#modal-confirm-move-courses-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="#modal-confirm-move-courses-label">Delete courses</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to move the courses to the trash?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btn-move-courses-modal" class="btn btn-danger"
+                    data-bs-dismiss="modal">Move</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="form-delete" method="post"></form>
+
+<script type="module">
+    document.addEventListener('DOMContentLoaded', () => {
+        // * Handle confirm move course when open modal
+        const confirmDeleteCourse = document.getElementById('modal-confirm-move-course')
+        const btnMoveCourseModal = document.getElementById('btn-move-course-modal')
+        const formDelete = document.forms['form-delete']
+
+        confirmDeleteCourse.addEventListener('show.bs.modal', function (event) {
+            const courseId = event.relatedTarget.dataset.id
+            btnMoveCourseModal.onclick = () => {
+                if (formDelete) {
+                    formDelete.setAttribute('action', `/courses/delete/${courseId}?_method=DELETE`)
+                    formDelete.submit()
+                }
+            }
+        })
+
+        // * Handle form with action send to server
+
+        // handle checkbox
+        const checkboxCourse = document.querySelectorAll('input[name="courseIds[]"]');
+        const convertArray = Array.from(checkboxCourse);
+        const checkboxAll = document.getElementById('checkbox-all');
+        const btnSubmitAction = document.getElementById('submit-action')
+
+        const checkAllChecked = () => convertArray.every((checkbox) => checkbox.checked);
+        const checkAllUnChecked = () => convertArray.every((checkbox) => !checkbox.checked);
+        const checkOneChecked = () => convertArray.some((checkbox) => checkbox.checked);
+
+        (() => {
+            Array.from(convertArray).forEach((checkbox) => {
+                checkbox.onchange = (event) => {
+                    const isChecked = event.target.checked;
+                    const value = event.target.value;
+                    // show indeterminate when checkbox course checked not == count courses
+                    checkboxAll.indeterminate = true
+
+                    // checked checkbox all and del indeterminate when all checkbox course checked
+                    if (checkAllChecked()) {
+                        checkboxAll.checked = true
+                        checkboxAll.indeterminate = false
+                    }
+
+                    // uncheck all checkbox when all checkbox course unchecked
+                    if (checkAllUnChecked()) {
+                        checkboxAll.checked = false
+                        checkboxAll.indeterminate = false
+                        // disabled button submit when not course checked
+
+                    }
+
+                    // enable or disable button submit when there is course checked or not course checked
+                    btnSubmitAction.disabled = !checkOneChecked()
+                }
+            })
+        })()
+
+        // check all and unchecked all when change checkbox all
+        if (checkboxAll) {
+            checkboxAll.onchange = (event) => {
+                const isChecked = event.target.checked
+                convertArray.forEach((checkbox) => {
+                    checkbox.checked = isChecked
+                    // enable or disable button submit when there is checkbox all checked or unchecked
+                    btnSubmitAction.disabled = !checkOneChecked()
+                })
+            }
+        }
+
+        // handle send data to servers
+        const selectAction = document.getElementById('select-action')
+        const btnMoveCoursesModal = document.getElementById('btn-move-courses-modal')
+        const modalConfirmMoveCourse = document.getElementById('modal-confirm-move-courses')
+        const myModal = new bootstrap.Modal(modalConfirmMoveCourse)
+        const formHandleAction = document.forms['form-handle-action']
+
+        modalConfirmMoveCourse.addEventListener('show.bs.modal', (event) => {
+            btnMoveCoursesModal.onclick = () => {
+                formHandleAction.submit()
+            }
+        })
+
+        if (btnSubmitAction) {
+            btnSubmitAction.onclick = (e) => {
+                const isValid = formHandleAction.reportValidity()
+
+                if (!isValid) return
+
+                switch (selectAction.value) {
+                    case '2':
+                        myModal.show()
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    })
+
+</script>

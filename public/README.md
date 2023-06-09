@@ -1,0 +1,1 @@
+Chứa các tài nguyên tĩnh (ví dụ: hình ảnh, file CSS, file JavaScript) mà client-side có thể truy cập trực tiếp.

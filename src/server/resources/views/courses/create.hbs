@@ -1,0 +1,30 @@
+<div class="mt-4">
+    <h3>{{#if titlePage}}{{titlePage}}{{else}}Create new course{{/if}}</h3>
+    <form method="post" action={{action}}>
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" name="name" value="{{name}}" class="form-control" id="name" aria-describedby="name">
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea name="description" class="form-control" id="description" aria-describedby="description">{{description}}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="image" class="form-label">Image</label>
+            <input type="text" name="image" value="{{image}}" class="form-control" id="image" aria-describedby="image">
+        </div>
+        {{!-- <div class="mb-3">
+            <label for="slug" class="form-label">Slug</label>
+            <input type="text" name="slug" value="{{slug}}" class="form-control" id="slug" aria-describedby="slug">
+        </div> --}}
+        <div class="mb-3">
+            <label for="videoId" class="form-label">VideoId</label>
+            <input type="text" name="videoId" value="{{videoId}}" class="form-control" id="videoId" aria-describedby="videoId">
+        </div>
+        <div class="mb-3">
+            <label for="level" class="form-label">For level</label>
+            <input type="text" name="level" value="{{level}}" class="form-control" id="level" aria-describedby="level">
+        </div>
+        <button type="submit" class="btn btn-primary">{{#if textBtn}}{{textBtn}}{{else}}Create{{/if}}</button>
+    </form>
+</div>
